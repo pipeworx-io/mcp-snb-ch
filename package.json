@@ -1,20 +1,32 @@
 {
   "name": "@pipeworx/mcp-snb-ch",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Swiss National Bank (SNB) data portal MCP. Keyless.",
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
+  "bin": {
+    "mcp-snb-ch": "bin/cli.js"
+  },
   "keywords": ["mcp", "mcp-server", "model-context-protocol", "pipeworx", "snb-ch"],
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/pipeworx-io/mcp-snb-ch"
+    "url": "git+https://github.com/pipeworx-io/mcp-snb-ch.git"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"
   },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "tsx": "^4.19.0"
+  },
   "devDependencies": {
-    "typescript": "^5.7.0"
+    "typescript": "^5.9.3",
+    "@cloudflare/workers-types": "^4.20260405.1"
+  },
+  "pipeworx": {
+    "sourceHash": "v1-92ed8ae15a1b943a9568c1fa1f61103dfdfe41a7c1f5111467dd44674ab7c7ae",
+    "sourceCommit": "00c836ddeaecbdd581dcfb0fb1842efea104006e"
   }
 }
