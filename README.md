@@ -2,12 +2,13 @@
 
 Swiss National Bank (SNB) data portal MCP. Keyless.
 
-Part of [Pipeworx](https://pipeworx.io) — an MCP gateway connecting AI agents to 1683+ live data sources.
+Part of [Pipeworx](https://pipeworx.io) — an MCP gateway connecting AI agents to 1819+ live data sources. This is an independent, unofficial integration — not affiliated with, endorsed by, or published by the upstream provider.
 
 ## Tools
 
 | Tool | Description |
 |------|-------------|
+| `snb_policy_rate` | The Swiss National Bank's current policy rate: the rate, the date it took effect, the previous rate and when that one took effect, plus recent decision history. Computed from cube snboffzisa (series LZ, monthly) rather than left for the caller to infer a decision date from get_cube's raw observations. The SNB sets a single target value (no corridor) since the 2022 policy-rate redesign. |
 | `get_cube` | Fetch a Swiss National Bank statistical data cube's time series as JSON. Cube discovery is limited — pick a cubeId from these documented, verified-live IDs: |
 | `cube_structure` | Fetch a Swiss National Bank cube's dimensions/structure (the dimension items / series keys available within the cube). Use this to understand what a cube contains before/after calling get_cube. Verified-live cube IDs: |
 
@@ -55,19 +56,19 @@ directly, instead of just this one's:
 }
 ```
 
-Both URLs reach the same gateway and the same 1683+ data sources. The
+Both URLs reach the same gateway and the same 1819+ data sources. The
 only difference is which pack's tools are listed **directly**; `ask_pipeworx`
 reaches all of them from either one.
 
 ## No MCP client? Call it over HTTP
 
 ```bash
-curl -X POST https://gateway.pipeworx.io/v1/tools/get_cube \
+curl -X POST https://gateway.pipeworx.io/v1/tools/snb_policy_rate \
   -H 'Content-Type: application/json' \
-  -d '{"cubeId":"devkua"}'
+  -d '{}'
 ```
 
-No account needed for the first calls. Inspect any tool: `GET https://gateway.pipeworx.io/v1/tools/get_cube`. Find one: `POST https://gateway.pipeworx.io/v1/tools/search_packs` with `{"query":"..."}`.
+No account needed for the first calls. Inspect any tool: `GET https://gateway.pipeworx.io/v1/tools/snb_policy_rate`. Find one: `POST https://gateway.pipeworx.io/v1/tools/search_packs` with `{"query":"..."}`.
 
 ## Standalone (no gateway account)
 

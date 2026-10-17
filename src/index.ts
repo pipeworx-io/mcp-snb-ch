@@ -682,6 +682,9 @@ function collapse(s: string): string {
  *   - zimoma     Money market / reference rates incl. SARON (SNB policy-relevant)
  *   - rendoblid  Spot interest rates for Swiss Confederation & euro bond issues (yield curve)
  *   - snbmonagg  Monetary aggregates (M1/M2/M3, currency in circulation)
+ *   - snboffzisa Official policy rates (the SNB's own, series "LZ", plus the
+ *                Fed/ECB/BoE/BoJ's for comparison) — snb_policy_rate reads
+ *                this one directly (fleet #3206)
  */
 
 
@@ -700,6 +703,15 @@ const KNOWN_CUBES =
   'devkua = foreign exchange rates (CHF per currency); zimoma = money market & reference rates incl. SARON; rendoblid = Confederation/euro bond spot interest rates (yield curve); snbmonagg = monetary aggregates (M1/M2/M3, currency in circulation).';
 
 const tools: McpToolExport['tools'] = [
+  {
+    name: 'snb_policy_rate',
+    description:
+      "The Swiss National Bank's current policy rate: the rate, the date it took effect, the previous rate and " +
+      'when that one took effect, plus recent decision history. Computed from cube snboffzisa (series LZ, ' +
+      "monthly) rather than left for the caller to infer a decision date from get_cube's raw observations. " +
+      'The SNB sets a single target value (no corridor) since the 2022 policy-rate redesign.',
+    inputSchema: { type: 'object', properties: {} },
+  },
   {
     name: 'get_cube',
     description:
@@ -739,6 +751,8 @@ const tools: McpToolExport['tools'] = [
 
 async function callTool(name: string, args: Record<string, unknown>): Promise<unknown> {
   switch (name) {
+    case 'snb_policy_rate':
+      return policyRate();
     case 'get_cube':
       return snbGet(`/cube/${cubeId(args)}/data/json/en`);
     case 'cube_structure':
@@ -748,9 +762,55 @@ async function callTool(name: string, args: Record<string, unknown>): Promise<un
   }
 }
 
+interface SnbTimeseries {
+  timeseries?: { metadata?: { key?: string }; values?: { date: string; value: number | null }[] }[];
+}
+
+async function policyRate() {
+  const data = (await snbGet('/cube/snboffzisa/data/json/en')) as SnbTimeseries;
+  const lz = data.timeseries?.find((s) => s.metadata?.key?.endsWith('{LZ}'));
+  const pts = (lz?.values ?? []).filter((v) => v.value !== null) as { date: string; value: number }[];
+  if (pts.length === 0) {
+    return {
+      error: 'no_data',
+      message:
+        'The SNB returned no observations for the policy rate series (cube snboffzisa, series LZ). ' +
+        'The series shape may have changed upstream; try get_cube({cubeId:"snboffzisa"}) directly.',
+    };
+  }
+  // pts is ascending by date (the EPB cube JSON returns values in chronological
+  // order). Walk forward and record each point where the rate changes.
+  const changes: { rate: number; effective_since: string }[] = [{ rate: pts[0].value, effective_since: pts[0].date }];
+  for (let i = 1; i < pts.length; i++) {
+    if (pts[i].value !== changes[changes.length - 1].rate) {
+      changes.push({ rate: pts[i].value, effective_since: pts[i].date });
+    }
+  }
+  const current = changes[changes.length - 1];
+  const previous = changes.length > 1 ? changes[changes.length - 2] : null;
+  return {
+    rate: current.rate,
+    unit: 'percent',
+    effective_since: current.effective_since,
+    previous_rate: previous?.rate ?? null,
+    previous_rate_effective_since: previous?.effective_since ?? null,
+    decision_history: changes.slice(-5).reverse(),
+    data_as_of: pts[pts.length - 1].date,
+    note:
+      "The Swiss National Bank's policy rate (cube snboffzisa, series LZ), monthly. The SNB has set a single " +
+      'target value, not a range, since the June 2022 policy-rate redesign. This series lags roughly a month ' +
+      'behind the live rate; a decision from the latest Governing Board meeting may not appear yet.',
+  };
+}
+
 async function snbGet(path: string): Promise<unknown> {
   const res = await pwFetch(`${BASE}${path}`, { headers: { Accept: 'application/json', 'User-Agent': UA } });
-  if (!res.ok) throw new Error(`SNB: ${res.status} ${await res.text().then((t) => t.slice(0, 200))}`);
+  if (!res.ok) {
+    const body = await res.text().then((t) => t.slice(0, 200));
+    // SNB's own 404 already names the problem plainly ("Table X not found") —
+    // tag it so the gateway books it as a caller mistake, not our defect.
+    throw new Error(`not_found: SNB ${res.status} ${body}`);
+  }
   return res.json();
 }
 
