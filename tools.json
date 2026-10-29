@@ -1,0 +1,36 @@
+[
+  {
+    "name": "snb_policy_rate",
+    "description": "The Swiss National Bank's current policy rate: the rate, the date it took effect, the previous rate and when that one took effect, plus recent decision history. Computed from cube snboffzisa (series LZ, monthly) rather than left for the caller to infer a decision date from get_cube's raw observations. The SNB sets a single target value (no corridor) since the 2022 policy-rate redesign.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {}
+    }
+  },
+  {
+    "name": "get_cube",
+    "description": "Fetch a Swiss National Bank statistical data cube's time series as JSON. Cube discovery is limited — pick a cubeId from these documented, verified-live IDs: devkua = foreign exchange rates (CHF per currency); zimoma = money market & reference rates incl. SARON; rendoblid = Confederation/euro bond spot interest rates (yield curve); snbmonagg = monetary aggregates (M1/M2/M3, currency in circulation). Defaults to devkua (FX rates).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "cubeId": {
+          "type": "string",
+          "description": "SNB cube ID, e.g. \"devkua\", \"zimoma\", \"rendoblid\", \"snbmonagg\". Default \"devkua\"."
+        }
+      }
+    }
+  },
+  {
+    "name": "cube_structure",
+    "description": "Fetch a Swiss National Bank cube's dimensions/structure (the dimension items / series keys available within the cube). Use this to understand what a cube contains before/after calling get_cube. Verified-live cube IDs: devkua = foreign exchange rates (CHF per currency); zimoma = money market & reference rates incl. SARON; rendoblid = Confederation/euro bond spot interest rates (yield curve); snbmonagg = monetary aggregates (M1/M2/M3, currency in circulation). Defaults to devkua (FX rates).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "cubeId": {
+          "type": "string",
+          "description": "SNB cube ID, e.g. \"devkua\", \"zimoma\", \"rendoblid\", \"snbmonagg\". Default \"devkua\"."
+        }
+      }
+    }
+  }
+]
