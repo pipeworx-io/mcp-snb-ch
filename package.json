@@ -1,6 +1,6 @@
 {
   "name": "@pipeworx/mcp-snb-ch",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Swiss National Bank (SNB) data portal MCP. Keyless.",
   "type": "module",
   "main": "lib/index.js",
@@ -27,7 +27,7 @@
     "mode": "gateway",
     "slug": "snb-ch",
     "gatewaySlug": "snb-ch",
-    "sourceHash": "v1-046b7d3ad7ce385bb6d4e045639903f3f2703da46a2e90761409d8f08c719e81",
-    "sourceCommit": "f47d581679e1e887373df51ba623f891fbe4c464"
+    "sourceHash": "v1-253208557e0b1621c952f275d23a5f9e57e68d42e259838babf3d8538da56fb7",
+    "sourceCommit": "8fc802aa5e23be625ce08d97178f5676c7bc93f3"
   }
 }
